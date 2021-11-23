@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatinScrapper", "LatinScrapper.csproj", "{20F52CD4-7E6E-486E-96DA-E2B9A4F8969F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20F52CD4-7E6E-486E-96DA-E2B9A4F8969F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F52CD4-7E6E-486E-96DA-E2B9A4F8969F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F52CD4-7E6E-486E-96DA-E2B9A4F8969F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F52CD4-7E6E-486E-96DA-E2B9A4F8969F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27FD6837-3CE0-4765-9805-32F2220A8F32}
+	EndGlobalSection
+EndGlobal
