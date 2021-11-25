@@ -16,14 +16,21 @@ namespace LatinScrapper
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            _browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            if (_browser == null)
             {
-                Headless = false,
-                ExecutablePath = $"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            });
-            _page = await _browser.NewPageAsync();
-            await _page.SetViewportAsync(new ViewPortOptions { Width = 1200, Height = 800 });
-            await _page.GoToAsync(siteUrl);
+                _browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = false,
+                    ExecutablePath = $"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+                });
+                _page = await _browser.NewPageAsync();
+                await _page.SetViewportAsync(new ViewPortOptions { Width = 1200, Height = 800 });
+                await _page.GoToAsync(siteUrl);
+            }
+           else
+            {
+                MessageBox.Show("Browser is already opened", "Error");
+            }
            
         }
         
@@ -31,12 +38,12 @@ namespace LatinScrapper
         {
             if(_browser == null)
             {
-                MessageBox.Show("Open browser first");
+                MessageBox.Show("Open browser first", "Error");
                 return;
             }
             if (filePath.Text == "")
             {
-                MessageBox.Show("Select output path first");
+                MessageBox.Show("Select output path first", "Error");
                 return;
 
             }
@@ -48,7 +55,7 @@ namespace LatinScrapper
                 var page = pages.FirstOrDefault(x => x.Url.Contains("https://www.dl.cambridgescp.com/sites"));
                 if (page == null)
                 {
-                    MessageBox.Show("Open browser page to scrap");
+                    MessageBox.Show("Open browser page to scrap", "Error");
                     return;
 
                 }
@@ -56,7 +63,13 @@ namespace LatinScrapper
                 try
                 {
                     var documentNameNode = await page.WaitForSelectorAsync($"div#hdr");
-                    var documentName = (string)await documentNameNode.EvaluateFunctionAsync("el => el.firstElementChild.previousSibling.nodeValue");
+                    var documentName = (string)await documentNameNode.EvaluateFunctionAsync(@"el => {
+                        if (el.firstElementChild) {
+                            return el.firstElementChild.previousSibling.nodeValue.trim();
+                        } else {
+                            return el.textContent;
+                        }
+                    }");
                     var wordsCount = (int)await page.EvaluateFunctionAsync(@"() => [...document.querySelectorAll('span')].filter(e => e.id.match(/w\d+/gm)).length");
                     await page.ClickAsync($"span#w{wordIndex}");
                     while (wordIndex < wordsCount)
@@ -70,14 +83,23 @@ namespace LatinScrapper
                                     case 1 : {
                                         let c = el.firstElementChild.textContent;
                                         let grammar =  el.firstElementChild.nextSibling.nodeValue.trim();
-                                        res = [{Conjuration: c, Meaning: grammar}]
+                                        res = [{Conjugation: c, Meaning: grammar}]
                                         break;
                                     }
                                     case 2 : {
                                         let c = el.firstElementChild.textContent;
                                         let grammar =  el.firstElementChild.nextSibling.nodeValue.trim();
                                         let g = el.lastElementChild.textContent;
-                                        res = [{Conjuration: c, Meaning: grammar, Analysis: g}]
+                                        res = [{Conjugation: c, Meaning: grammar, Analysis: g}]
+                                        break;
+                                    }
+                                    case 3 : {
+                                       let w1 = el.firstElementChild.textContent;
+                                       let m1 = el.firstElementChild.nextSibling.nodeValue.trim();
+                                       let w2 = el.children[2].textContent;
+                                       let m2 = el.children[2].nextSibling.nodeValue.trim();
+                                       res = [{Conjugation: w1, Meaning: m1},
+                                              {Word: w2, Meaning: m2}]
                                         break;
                                     }
                                     case 4 : {
@@ -86,12 +108,12 @@ namespace LatinScrapper
                                        let w2 = el.children[2].textContent;
                                        let m2 = el.children[2].nextSibling.nodeValue.trim();
                                        let analys = el.lastElementChild.textContent;
-                                       res = [{Conjuration: w1, Meaning: m1, Analysis: analys},
+                                       res = [{Conjugation: w1, Meaning: m1, Analysis: analys},
                                               {Word: w2, Meaning: m2}]
                                        break;
                                     }
                                     default : {
-                                        res = [];
+                                        res = [{Conjugation: el.textContent}];
                                     }
                                 }
                                 return res;
@@ -163,11 +185,21 @@ namespace LatinScrapper
                 filePath.Text = fbd.SelectedPath;
             }
         }
+
+        private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if(_browser != null)
+            {
+                await _browser.CloseAsync();
+                _browser?.Dispose();
+                _browser = null;
+            }
+        }
     }
     public class LatinData
     {
         public string? Word { get; set; }
-        public string? Conjuration { get; set; }
+        public string? Conjugation { get; set; }
         public string? Meaning { get; set; }
         public string? Analysis { get; set; }
     }
