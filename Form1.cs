@@ -3,6 +3,7 @@ namespace LatinScrapper
     using Newtonsoft.Json;
     using OfficeOpenXml;
     using PuppeteerSharp;
+    using System.Diagnostics;
 
     public partial class Form1 : Form
     {
@@ -12,6 +13,11 @@ namespace LatinScrapper
         public Form1()
         {
             InitializeComponent();
+            this.tbOutputFolder.DataBindings.Add(new Binding("Text", Properties.Settings.Default, "OutputFolder"));
+            if (String.IsNullOrWhiteSpace(tbOutputFolder.Text))
+            {
+                Properties.Settings.Default.OutputFolder = tbOutputFolder.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -41,7 +47,7 @@ namespace LatinScrapper
                 MessageBox.Show("Open browser first", "Error");
                 return;
             }
-            if (filePath.Text == "")
+            if (tbOutputFolder.Text == "")
             {
                 MessageBox.Show("Select output path first", "Error");
                 return;
@@ -130,8 +136,10 @@ namespace LatinScrapper
                         var keyboard = page.Keyboard;
                         await keyboard.PressAsync("ArrowRight");
                     }
-                    var distinctData = data.DistinctBy(x => x.Word).OrderBy(x => x.Word);
-                    ExportToExcel(distinctData, $"{filePath.Text}\\{documentName}.xlsx");
+                    var distinctData = data.DistinctBy(x => x.Word);//.OrderBy(x => x.Word);
+                    var outputFileName = $"{tbOutputFolder.Text}\\{documentName}.xlsx";
+                    ExportToExcel(distinctData, outputFileName);
+                    MessageBox.Show("Successfully saved to " + outputFileName);
                 }
                 catch (Exception ex)
                 {
@@ -182,12 +190,14 @@ namespace LatinScrapper
             fbd.Description = "Select folder";
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                filePath.Text = fbd.SelectedPath;
+                tbOutputFolder.Text = fbd.SelectedPath;
             }
         }
 
         private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Properties.Settings.Default.OutputFolder = tbOutputFolder.Text;
+            Properties.Settings.Default.Save();
             if(_browser != null)
             {
                 await _browser.CloseAsync();
