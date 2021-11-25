@@ -137,7 +137,7 @@ namespace LatinScrapper
                         await keyboard.PressAsync("ArrowRight");
                     }
                     var distinctData = data.DistinctBy(x => x.Word);//.OrderBy(x => x.Word);
-                    var outputFileName = $"{tbOutputFolder.Text}\\{documentName}.xlsx";
+                    var outputFileName = GenerateFilename(documentName);
                     ExportToExcel(distinctData, outputFileName);
                     MessageBox.Show("Successfully saved to " + outputFileName);
                 }
@@ -147,13 +147,23 @@ namespace LatinScrapper
                 }
                 finally
                 {
-                    await _browser.CloseAsync();
-                    _browser?.Dispose();
-                    _browser = null;
+                    if (page != null)
+                    {
+                        await page.CloseAsync();
+                    }
                 }
 
             }
             
+        }
+
+        private string GenerateFilename(string documentName)
+        {
+            var outputFileName = $"{tbOutputFolder.Text}\\{documentName}.xlsx";
+            int index = 1;
+            while (File.Exists(outputFileName))
+                outputFileName = $"{tbOutputFolder.Text}\\{documentName}-{index++}.xlsx";
+            return outputFileName;
         }
 
         private void ExportToExcel(IEnumerable<LatinData> latinData, string path)
