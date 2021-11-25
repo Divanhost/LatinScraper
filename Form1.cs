@@ -3,18 +3,10 @@ namespace LatinScrapper
     using Newtonsoft.Json;
     using OfficeOpenXml;
     using PuppeteerSharp;
-    public class LatinData
-    {
-        public string? Word { get; set; }
-        public string? Conjuration { get; set; }
-        public string? Meaning { get; set; }
-        public string? Analysis { get; set; }
-    }
 
     public partial class Form1 : Form
     {
         private readonly string siteUrl = "https://www.dl.cambridgescp.com/Array/book-ii-stage-stage-teachers-guide";
-        private readonly string exportPath;
         private Browser? _browser;
         private Page _page;
         public Form1()
@@ -37,12 +29,29 @@ namespace LatinScrapper
         
         private async void button2_Click(object sender, EventArgs e)
         {
-            if(_browser == null) return;
+            if(_browser == null)
+            {
+                MessageBox.Show("Open browser first");
+                return;
+            }
+            if (filePath.Text == "")
+            {
+                MessageBox.Show("Select output path first");
+                return;
+
+            }
+            
             var pages = await _browser.PagesAsync();
             List<LatinData> data = new();
             if (pages.Length > 1)
             {
-                var page = pages.First(x => x.Url.Contains("https://www.dl.cambridgescp.com/sites"));
+                var page = pages.FirstOrDefault(x => x.Url.Contains("https://www.dl.cambridgescp.com/sites"));
+                if (page == null)
+                {
+                    MessageBox.Show("Open browser page to scrap");
+                    return;
+
+                }
                 var wordIndex = 0;
                 try
                 {
@@ -100,8 +109,11 @@ namespace LatinScrapper
                         await keyboard.PressAsync("ArrowRight");
                     }
                     var distinctData = data.DistinctBy(x => x.Word).OrderBy(x => x.Word);
-                    ExportToExcel(distinctData, @$"C:\projects\{documentName}.xlsx");
-
+                    ExportToExcel(distinctData, $"{filePath.Text}\\{documentName}.xlsx");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
                 }
                 finally
                 {
@@ -140,5 +152,23 @@ namespace LatinScrapper
                 return;
             }
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.RootFolder = Environment.SpecialFolder.MyDocuments;
+            fbd.Description = "Select folder";
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                filePath.Text = fbd.SelectedPath;
+            }
+        }
+    }
+    public class LatinData
+    {
+        public string? Word { get; set; }
+        public string? Conjuration { get; set; }
+        public string? Meaning { get; set; }
+        public string? Analysis { get; set; }
     }
 }
