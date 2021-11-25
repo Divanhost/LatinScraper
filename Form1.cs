@@ -5,17 +5,17 @@ namespace LatinScrapper
     using PuppeteerSharp;
     public class LatinData
     {
-        public string Word { get; set; }
-        public string Conjuration { get; set; }
-        public string Meaning { get; set; }
-        public string Analysis { get; set; }
+        public string? Word { get; set; }
+        public string? Conjuration { get; set; }
+        public string? Meaning { get; set; }
+        public string? Analysis { get; set; }
     }
 
     public partial class Form1 : Form
     {
         private readonly string siteUrl = "https://www.dl.cambridgescp.com/Array/book-ii-stage-stage-teachers-guide";
         private readonly string exportPath;
-        private Browser _browser;
+        private Browser? _browser;
         private Page _page;
         public Form1()
         {
@@ -37,8 +37,9 @@ namespace LatinScrapper
         
         private async void button2_Click(object sender, EventArgs e)
         {
+            if(_browser == null) return;
             var pages = await _browser.PagesAsync();
-            List<LatinData> data = new List<LatinData>();
+            List<LatinData> data = new();
             if (pages.Length > 1)
             {
                 var page = pages.First(x => x.Url.Contains("https://www.dl.cambridgescp.com/sites"));
